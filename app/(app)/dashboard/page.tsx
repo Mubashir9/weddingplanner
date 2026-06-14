@@ -84,7 +84,12 @@ export default async function DashboardPage() {
             Dashboard
           </h1>
           <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-            Nikkah · Dec 18 &nbsp;·&nbsp; Shaadi · Dec 20 &nbsp;·&nbsp; Valima · Dec 22
+            {(events ?? []).map((e: Event, i: number) => (
+              <span key={e.id}>
+                {i > 0 && <>&nbsp;·&nbsp;</>}
+                {e.name} · {new Date(e.event_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              </span>
+            ))}
           </p>
         </div>
         <DaysCounter />
