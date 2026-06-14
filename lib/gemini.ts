@@ -10,7 +10,7 @@ export const geminiModel = genAI.getGenerativeModel({
 export function buildNudgePrompt(context: WeddingContext): string {
   const today = new Date().toISOString().split('T')[0]
   return `You are a wedding planning assistant for a Pakistani wedding with 3 events:
-Nikkah (Dec 18), Shaadi (Dec 20), and Valima (Dec 22), all in 2026.
+Nikkah (Dec 19), Shaadi (Dec 20), and Valima (Dec 22), all in 2026.
 Today is ${today}. There are ${context.daysRemaining} days until the Shaadi.
 
 Wedding planning state:
