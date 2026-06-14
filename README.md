@@ -112,20 +112,6 @@ Six tables:
 - `budget_items` — spend line items linked to an event and optionally a vendor
 - `ai_nudges` — cached Gemini nudge responses with timestamp
 
-The full schema including RLS policies and seed data is in `supabase-schema.sql` (gitignored — kept local only).
-
-### Migrations applied after initial setup
-
-```sql
--- Add vendor_id to budget_items
-ALTER TABLE budget_items
-  ADD COLUMN IF NOT EXISTS vendor_id uuid REFERENCES vendors(id) ON DELETE SET NULL;
-
--- Change assigned_to on tasks from uuid FK to plain text
-ALTER TABLE tasks DROP COLUMN assigned_to;
-ALTER TABLE tasks ADD COLUMN assigned_to text;
-```
-
 ---
 
 ## Running locally
@@ -142,20 +128,6 @@ Before the app does anything useful you need Supabase and a Gemini key — see `
 
 ---
 
-## Environment variables
-
-```bash
-# .env.local
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=      # server-only, never exposed to the client
-GEMINI_API_KEY=                 # server-only, never NEXT_PUBLIC_
-```
-
----
-
 ## Design
 
 White background. One accent color (`#B5886A`, a muted warm terracotta). Two fonts — Cormorant Garamond for display text (the days counter, event names, page titles) and DM Sans for everything functional. No shadows on cards, borders only. No gradients. No rounded-full on anything except status badges and the assigned-to pill.
-
-The goal was something that reads as a deliberate tool rather than a generated UI. Inspired by [weddingclaire.com](https://weddingclaire.com).
