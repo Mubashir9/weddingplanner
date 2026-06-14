@@ -4,7 +4,7 @@ import type { WeddingContext } from '@/types'
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
 export const geminiModel = genAI.getGenerativeModel({
-  model: 'gemini-2.5-flash-latest',
+  model: 'gemini-2.5-flash',
 })
 
 export function buildNudgePrompt(context: WeddingContext): string {
