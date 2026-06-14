@@ -29,7 +29,7 @@ export default async function TasksPage() {
       .select('*')
       .eq('wedding_id', weddingId)
       .order('event_date'),
-    supabase.from('tasks').select('*').eq('wedding_id', weddingId).order('created_at'),
+    supabase.from('tasks').select('*').eq('wedding_id', weddingId),
   ])
 
   return (
