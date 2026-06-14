@@ -53,6 +53,7 @@ export interface BudgetItem {
   id: string
   wedding_id: string
   event_id: string | null
+  vendor_id: string | null
   label: string
   amount: number
   currency: string

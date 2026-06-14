@@ -4,19 +4,20 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import type { BudgetItem, Event, BudgetCategory } from '@/types'
+import type { BudgetItem, Event, BudgetCategory, Vendor } from '@/types'
 import { Plus, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface BudgetClientProps {
   events: Event[]
   initialItems: BudgetItem[]
+  vendors: Pick<Vendor, 'id' | 'name'>[]
   weddingId: string
 }
 
 const CATEGORIES: BudgetCategory[] = ['catering', 'attire', 'decor', 'photography', 'misc']
 
-export function BudgetClient({ events, initialItems, weddingId }: BudgetClientProps) {
+export function BudgetClient({ events, initialItems, vendors, weddingId }: BudgetClientProps) {
   const [items, setItems] = useState<BudgetItem[]>(initialItems)
   const [adding, setAdding] = useState(false)
   const [form, setForm] = useState({
@@ -41,6 +42,7 @@ export function BudgetClient({ events, initialItems, weddingId }: BudgetClientPr
         amount: Number(form.amount),
         category: form.category,
         event_id: form.event_id || null,
+        vendor_id: null,
         paid: form.paid,
         currency: 'PKR',
       })
@@ -126,7 +128,7 @@ export function BudgetClient({ events, initialItems, weddingId }: BudgetClientPr
             style={{ borderColor: 'var(--color-border)' }}
           >
             {group.items.map((item) => (
-              <BudgetRow key={item.id} item={item} onTogglePaid={togglePaid} />
+              <BudgetRow key={item.id} item={item} vendors={vendors} onTogglePaid={togglePaid} />
             ))}
           </div>
         </section>
@@ -215,11 +217,15 @@ export function BudgetClient({ events, initialItems, weddingId }: BudgetClientPr
 
 function BudgetRow({
   item,
+  vendors,
   onTogglePaid,
 }: {
   item: BudgetItem
+  vendors: Pick<Vendor, 'id' | 'name'>[]
   onTogglePaid: (id: string, paid: boolean) => void
 }) {
+  const vendorName = item.vendor_id ? vendors.find((v) => v.id === item.vendor_id)?.name : null
+
   return (
     <div
       className="flex items-center gap-3 px-4 py-3 border-b last:border-b-0"
@@ -245,9 +251,16 @@ function BudgetRow({
         >
           {item.label}
         </p>
-        {item.category && (
-          <p className="text-xs text-[var(--color-text-muted)] capitalize">{item.category}</p>
-        )}
+        <div className="flex items-center gap-2 mt-0.5">
+          {item.category && (
+            <span className="text-xs text-[var(--color-text-muted)] capitalize">{item.category}</span>
+          )}
+          {vendorName && (
+            <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+              · via {vendorName}
+            </span>
+          )}
+        </div>
       </div>
       <p className="text-sm font-medium text-[var(--color-text-primary)] shrink-0">
         PKR {Number(item.amount).toLocaleString('en-PK')}

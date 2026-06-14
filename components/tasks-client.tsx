@@ -28,6 +28,12 @@ export function TasksClient({ events, initialTasks, weddingId }: TasksClientProp
     setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status } : t)))
   }
 
+  async function handleDelete(id: string) {
+    setTasks((prev) => prev.filter((t) => t.id !== id))
+    const supabase = createClient()
+    await supabase.from('tasks').delete().eq('id', id)
+  }
+
   async function handleAddTask(eventId: string) {
     if (!newTitle.trim()) return
     const supabase = createClient()
@@ -105,7 +111,7 @@ export function TasksClient({ events, initialTasks, weddingId }: TasksClientProp
                   </div>
                 ) : (
                   eventTasks.map((task) => (
-                    <TaskCard key={task.id} task={task} onUpdate={handleUpdate} />
+                    <TaskCard key={task.id} task={task} onUpdate={handleUpdate} onDelete={handleDelete} />
                   ))
                 )}
 

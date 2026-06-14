@@ -1,6 +1,9 @@
+'use client'
+
+import { useState } from 'react'
 import type { Vendor } from '@/types'
 import { cn } from '@/lib/utils'
-import { Link2, Phone, ExternalLink } from 'lucide-react'
+import { Link2, Phone, ExternalLink, Trash2 } from 'lucide-react'
 
 const STATUS_STYLE = {
   shortlisted: 'bg-[var(--color-surface)] text-[var(--color-text-muted)] border border-[var(--color-border)]',
@@ -12,6 +15,7 @@ interface VendorCardProps {
   vendor: Vendor
   eventName?: string
   onStatusChange: (id: string, status: Vendor['status']) => void
+  onDelete: (id: string) => void
 }
 
 const STATUS_CYCLE: Record<string, Vendor['status']> = {
@@ -20,10 +24,12 @@ const STATUS_CYCLE: Record<string, Vendor['status']> = {
   booked: 'shortlisted',
 }
 
-export function VendorCard({ vendor, eventName, onStatusChange }: VendorCardProps) {
+export function VendorCard({ vendor, eventName, onStatusChange, onDelete }: VendorCardProps) {
+  const [confirming, setConfirming] = useState(false)
+
   return (
     <div
-      className="p-4 border rounded-[var(--radius-md)] flex flex-col gap-3"
+      className="group relative p-4 border rounded-[var(--radius-md)] flex flex-col gap-3"
       style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)' }}
     >
       <div className="flex items-start justify-between gap-2">
@@ -42,15 +48,24 @@ export function VendorCard({ vendor, eventName, onStatusChange }: VendorCardProp
             )}
           </div>
         </div>
-        <button
-          onClick={() => onStatusChange(vendor.id, STATUS_CYCLE[vendor.status])}
-          className={cn(
-            'text-xs px-2 py-0.5 rounded-full shrink-0 transition-opacity hover:opacity-80',
-            STATUS_STYLE[vendor.status]
-          )}
-        >
-          {vendor.status}
-        </button>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            onClick={() => onStatusChange(vendor.id, STATUS_CYCLE[vendor.status])}
+            className={cn(
+              'text-xs px-2 py-0.5 rounded-full transition-opacity hover:opacity-80',
+              STATUS_STYLE[vendor.status]
+            )}
+          >
+            {vendor.status}
+          </button>
+          <button
+            onClick={() => setConfirming(true)}
+            className="opacity-0 group-hover:opacity-100 transition-opacity text-[var(--color-text-muted)] hover:text-[var(--color-destructive)]"
+            aria-label="Delete vendor"
+          >
+            <Trash2 size={13} />
+          </button>
+        </div>
       </div>
 
       {vendor.quote && (
@@ -87,6 +102,30 @@ export function VendorCard({ vendor, eventName, onStatusChange }: VendorCardProp
         <p className="text-xs text-[var(--color-text-muted)] border-t pt-2" style={{ borderColor: 'var(--color-border)' }}>
           {vendor.notes}
         </p>
+      )}
+
+      {confirming && (
+        <div
+          className="absolute inset-x-0 bottom-0 flex items-center justify-between px-4 py-3 rounded-b-[var(--radius-md)] bg-red-50 border-t"
+          style={{ borderColor: 'var(--color-destructive)' }}
+        >
+          <p className="text-sm text-[var(--color-destructive)]">Remove this vendor?</p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setConfirming(false)}
+              className="text-xs px-2 py-0.5 rounded-[var(--radius-sm)] border text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+              style={{ borderColor: 'var(--color-border)' }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => onDelete(vendor.id)}
+              className="text-xs px-2 py-0.5 rounded-[var(--radius-sm)] bg-[var(--color-destructive)] text-white"
+            >
+              Remove
+            </button>
+          </div>
+        </div>
       )}
     </div>
   )

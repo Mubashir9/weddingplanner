@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import type { Vendor, Event, VendorCategory, VendorStatus } from '@/types'
+import type { Vendor, Event, VendorCategory, VendorStatus, BudgetCategory } from '@/types'
 import { Plus } from 'lucide-react'
 
 interface VendorsClientProps {
@@ -25,6 +25,14 @@ const CATEGORIES: VendorCategory[] = [
   'catering', 'photography', 'mehendi', 'attire_bride', 'attire_groom',
   'decor', 'band_dhol', 'makeup', 'transport', 'other',
 ]
+
+const VENDOR_TO_BUDGET_CATEGORY: Partial<Record<VendorCategory, BudgetCategory>> = {
+  catering: 'catering',
+  photography: 'photography',
+  attire_bride: 'attire',
+  attire_groom: 'attire',
+  decor: 'decor',
+}
 
 export function VendorsClient({ events, initialVendors, weddingId }: VendorsClientProps) {
   const [vendors, setVendors] = useState<Vendor[]>(initialVendors)
@@ -69,16 +77,58 @@ export function VendorsClient({ events, initialVendors, weddingId }: VendorsClie
       .single()
 
     if (!error && data) {
-      setVendors((prev) => [...prev, data as Vendor])
+      const newVendor = data as Vendor
+      setVendors((prev) => [...prev, newVendor])
+
+      // If added directly as booked with a quote, auto-add to budget
+      if (form.status === 'booked' && form.quote) {
+        await maybeAddToBudget(newVendor)
+      }
+
       setOpen(false)
       setForm({ name: '', category: 'other', event_id: '', instagram_url: '', phone: '', quote: '', notes: '', status: 'shortlisted' })
+    }
+  }
+
+  async function maybeAddToBudget(vendor: Vendor) {
+    if (!vendor.quote) return
+    const supabase = createClient()
+
+    const { data: existing } = await supabase
+      .from('budget_items')
+      .select('id')
+      .eq('vendor_id', vendor.id)
+      .maybeSingle()
+
+    if (!existing) {
+      await supabase.from('budget_items').insert({
+        wedding_id: weddingId,
+        vendor_id: vendor.id,
+        event_id: vendor.event_id,
+        label: vendor.name,
+        amount: vendor.quote,
+        category: vendor.category ? (VENDOR_TO_BUDGET_CATEGORY[vendor.category] ?? 'misc') : 'misc',
+        paid: false,
+        currency: 'PKR',
+      })
     }
   }
 
   async function handleStatusChange(id: string, status: VendorStatus) {
     const supabase = createClient()
     await supabase.from('vendors').update({ status }).eq('id', id)
+    const updated = vendors.find((v) => v.id === id)
     setVendors((prev) => prev.map((v) => (v.id === id ? { ...v, status } : v)))
+
+    if (status === 'booked' && updated) {
+      await maybeAddToBudget({ ...updated, status })
+    }
+  }
+
+  async function handleDelete(id: string) {
+    setVendors((prev) => prev.filter((v) => v.id !== id))
+    const supabase = createClient()
+    await supabase.from('vendors').delete().eq('id', id)
   }
 
   const getEventName = (id: string | null) =>
@@ -226,6 +276,7 @@ export function VendorsClient({ events, initialVendors, weddingId }: VendorsClie
               vendor={v}
               eventName={getEventName(v.event_id)}
               onStatusChange={handleStatusChange}
+              onDelete={handleDelete}
             />
           ))}
         </div>
