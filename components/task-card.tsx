@@ -88,7 +88,15 @@ export function TaskCard({ task, onUpdate, onDelete }: TaskCardProps) {
         >
           {task.title}
         </p>
-        <div className="flex items-center gap-2 mt-1">
+        <div className="flex items-center gap-2 mt-1 flex-wrap">
+          {task.assigned_to && (
+            <span
+              className="text-xs px-1.5 py-0.5 rounded-full border"
+              style={{ borderColor: 'var(--color-border)', color: 'var(--color-accent)', backgroundColor: 'var(--color-surface)' }}
+            >
+              {task.assigned_to}
+            </span>
+          )}
           {task.category && (
             <span className="text-xs text-[var(--color-text-muted)]">{task.category}</span>
           )}

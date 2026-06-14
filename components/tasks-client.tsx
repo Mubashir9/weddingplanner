@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input'
 import type { Task, TaskStatus, Event, TaskCategory } from '@/types'
 import { ChevronDown, ChevronRight, Plus } from 'lucide-react'
 
+const ASSIGNEES = ['Mubashir', 'Kulsoom']
+
 interface TasksClientProps {
   events: Event[]
   initialTasks: Task[]
@@ -22,6 +24,7 @@ export function TasksClient({ events, initialTasks, weddingId }: TasksClientProp
   const [adding, setAdding] = useState<string | null>(null)
   const [newTitle, setNewTitle] = useState('')
   const [newCategory, setNewCategory] = useState<TaskCategory>('other')
+  const [newAssignedTo, setNewAssignedTo] = useState('')
   const [isPending, startTransition] = useTransition()
 
   function handleUpdate(id: string, status: TaskStatus) {
@@ -44,6 +47,7 @@ export function TasksClient({ events, initialTasks, weddingId }: TasksClientProp
         wedding_id: weddingId,
         title: newTitle.trim(),
         category: newCategory,
+        assigned_to: newAssignedTo || null,
         status: 'todo',
       })
       .select()
@@ -53,6 +57,7 @@ export function TasksClient({ events, initialTasks, weddingId }: TasksClientProp
       setTasks((prev) => [...prev, data as Task])
     }
     setNewTitle('')
+    setNewAssignedTo('')
     setAdding(null)
   }
 
@@ -142,6 +147,17 @@ export function TasksClient({ events, initialTasks, weddingId }: TasksClientProp
                       <option value="catering">Catering</option>
                       <option value="decor">Decor</option>
                       <option value="planning">Planning</option>
+                    </select>
+                    <select
+                      value={newAssignedTo}
+                      onChange={(e) => setNewAssignedTo(e.target.value)}
+                      className="text-sm h-8 px-2 border rounded-[var(--radius-sm)] bg-[var(--color-bg)] text-[var(--color-text-primary)]"
+                      style={{ borderColor: 'var(--color-border)' }}
+                    >
+                      <option value="">Unassigned</option>
+                      {ASSIGNEES.map((a) => (
+                        <option key={a} value={a}>{a}</option>
+                      ))}
                     </select>
                     <Button
                       size="sm"
