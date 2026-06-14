@@ -65,11 +65,6 @@ export default async function DashboardPage() {
   const totalSpent = budgetItems.reduce((s, b) => s + Number(b.amount), 0)
   const bookedVendors = vendors.filter((v) => v.status === 'booked').length
 
-  const upcomingTasks = tasks
-    .filter((t) => t.status !== 'done' && t.due_date)
-    .sort((a, b) => (a.due_date! > b.due_date! ? 1 : -1))
-    .slice(0, 5)
-
   const getEventName = (id: string) => events.find((e) => e.id === id)?.name ?? '—'
 
   return (
@@ -125,36 +120,43 @@ export default async function DashboardPage() {
           <NudgesSection weddingId={weddingId} initialNudges={nudges} />
         </section>
 
-        {/* Upcoming tasks */}
+        {/* Tasks by event */}
         <section>
           <h2 className="text-sm font-medium text-[var(--color-text-secondary)] uppercase tracking-wide mb-3">
-            Upcoming tasks
+            Tasks by event
           </h2>
-          {upcomingTasks.length === 0 ? (
-            <p className="text-sm text-[var(--color-text-muted)]">
-              No upcoming tasks with due dates.
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {upcomingTasks.map((task) => (
+          <div className="space-y-2">
+            {events.map((event) => {
+              const eventTasks = tasks.filter((t) => t.event_id === event.id)
+              const done = eventTasks.filter((t) => t.status === 'done').length
+              const inProgress = eventTasks.filter((t) => t.status === 'in_progress').length
+              const todo = eventTasks.filter((t) => t.status === 'todo').length
+              const percent = eventTasks.length > 0 ? Math.round((done / eventTasks.length) * 100) : 0
+              return (
                 <div
-                  key={task.id}
-                  className="flex items-center justify-between p-3 border rounded-[var(--radius-md)]"
+                  key={event.id}
+                  className="p-3 border rounded-[var(--radius-md)]"
                   style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)' }}
                 >
-                  <div>
-                    <p className="text-sm text-[var(--color-text-primary)]">{task.title}</p>
-                    <p className="text-xs text-[var(--color-text-muted)]">{getEventName(task.event_id)}</p>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-medium text-[var(--color-text-primary)]">{event.name}</p>
+                    <p className="text-xs text-[var(--color-text-muted)]">{percent}% done</p>
                   </div>
-                  {task.due_date && (
-                    <span className="text-xs text-[var(--color-text-secondary)]">
-                      {new Date(task.due_date).toLocaleDateString('en-PK', { month: 'short', day: 'numeric' })}
-                    </span>
-                  )}
+                  <div className="h-1.5 w-full rounded-full bg-[var(--color-border)] overflow-hidden mb-2">
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{ width: `${percent}%`, backgroundColor: 'var(--color-ok)' }}
+                    />
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="text-xs text-[var(--color-text-muted)]">{todo} to do</span>
+                    {inProgress > 0 && <span className="text-xs text-[var(--color-info)]">{inProgress} in progress</span>}
+                    <span className="text-xs text-[var(--color-ok)]">{done} done</span>
+                  </div>
                 </div>
-              ))}
-            </div>
-          )}
+              )
+            })}
+          </div>
         </section>
       </div>
     </div>
